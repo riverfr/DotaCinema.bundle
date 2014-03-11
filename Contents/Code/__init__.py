@@ -16,7 +16,24 @@ def Start():
 @handler(PREFIX, TITLE)
 def Main():
 	object_container = ObjectContainer(title2=TITLE)
+	object_container.add(DirectoryObject(key=Callback(recent, title='Recent Uploads'), title='Recent Uploads', thumb=R(ICON)))
 	object_container.add(DirectoryObject(key=Callback(shows, title='Shows'), title='Shows', thumb=R(ICON)))
+	return object_container
+
+################################################################################
+@route(PREFIX + '/recent')
+def recent(title):
+	html_url     = 'http://www.youtube.com/user/DotaCinema/videos?view=0'
+	html_content = HTML.ElementFromURL(html_url)
+
+	object_container = ObjectContainer(title2=title)
+	for html_item in html_content.xpath('//*[@class="channels-content-item yt-shelf-grid-item"]'):
+		Log.Info('FOUND 1 ITEM')
+		videoclip_name  = html_item.xpath('./div/div[2]/h3/a/text()')[0].strip()
+		videoclip_url   = 'http://www.youtube.com' + html_item.xpath('./div/div[2]/h3/a/@href')[0].strip()
+		videoclip_thumb = Resource.ContentsOfURLWithFallback('http:' + html_item.xpath('./div/div[1]/a/span[1]/span/span/img/@src')[0])
+		object_container.add(VideoClipObject(title=videoclip_name, url=videoclip_url, thumb=videoclip_thumb))
+
 	return object_container
 
 ################################################################################
@@ -44,9 +61,10 @@ def show(title, playlist_url):
 
 	object_container = ObjectContainer(title2=title)
 	for html_item in html_content.xpath('//div[@class="pl-video-content"]'):
-		episode_name = html_item.xpath('./div/h3/a/text()')[0].strip()
-		episode_url  = 'http://www.youtube.com' + html_item.xpath('./a/@href')[0].strip()
-		object_container.add(VideoClipObject(title=episode_name, url=episode_url))
+		videoclip_name  = html_item.xpath('./div/h3/a/text()')[0].strip()
+		videoclip_url   = 'http://www.youtube.com' + html_item.xpath('./a/@href')[0].strip()
+		videoclip_thumb = Resource.ContentsOfURLWithFallback('http:' + html_item.xpath('./a/span/span/span/img/@src')[0])
+		object_container.add(VideoClipObject(title=videoclip_name, url=videoclip_url, thumb=videoclip_thumb))
 
 	object_container.objects.reverse()
 	return object_container
