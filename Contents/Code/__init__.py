@@ -15,10 +15,10 @@ def Start():
 ################################################################################
 @handler(PREFIX, TITLE, thumb=ICON, art=ART)
 def Main():
-	object_container = ObjectContainer(title2=TITLE)
-	object_container.add(DirectoryObject(key=Callback(recent, title='Recent Uploads'), title='Recent Uploads', thumb=R(ICON)))
-	object_container.add(DirectoryObject(key=Callback(shows, title='Shows'), title='Shows', thumb=R(ICON)))
-	object_container.add(DirectoryObject(key=Callback(vods, title='VODs'), title='VODs', thumb=R(ICON)))
+	object_container = ObjectContainer()
+	object_container.add(DirectoryObject(key=Callback(recent, title='Recent Uploads'), title='Recent Uploads'))
+	object_container.add(DirectoryObject(key=Callback(shows, title='Shows'), title='Shows'))
+	object_container.add(DirectoryObject(key=Callback(vods, title='VODs'), title='VODs'))
 	return object_container
 
 ################################################################################
@@ -74,7 +74,7 @@ def show(title, playlist_url):
 @route(PREFIX + '/vods')
 def vods(title):
 	object_container = ObjectContainer(title2=title)
-	object_container.add(DirectoryObject(key=Callback(vods_tournaments, title='Tournaments'), title='Tournaments', thumb=R(ICON)))
+	object_container.add(DirectoryObject(key=Callback(vods_tournaments, title='Tournaments'), title='Tournaments'))
 	return object_container
 
 ################################################################################
