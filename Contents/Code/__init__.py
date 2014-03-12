@@ -18,6 +18,7 @@ def Main():
 	object_container = ObjectContainer(title2=TITLE)
 	object_container.add(DirectoryObject(key=Callback(recent, title='Recent Uploads'), title='Recent Uploads', thumb=R(ICON)))
 	object_container.add(DirectoryObject(key=Callback(shows, title='Shows'), title='Shows', thumb=R(ICON)))
+	object_container.add(DirectoryObject(key=Callback(vods, title='VODs'), title='VODs', thumb=R(ICON)))
 	return object_container
 
 ################################################################################
@@ -67,4 +68,56 @@ def show(title, playlist_url):
 		object_container.add(VideoClipObject(title=videoclip_name, url=videoclip_url, thumb=videoclip_thumb))
 
 	object_container.objects.reverse()
+	return object_container
+
+################################################################################
+@route(PREFIX + '/vods')
+def vods(title):
+	object_container = ObjectContainer(title2=title)
+	object_container.add(DirectoryObject(key=Callback(vods_tournaments, title='Tournaments'), title='Tournaments', thumb=R(ICON)))
+	return object_container
+
+################################################################################
+@route(PREFIX + '/vods/tournaments')
+def vods_tournaments(title):
+	html_url     = 'http://www.dotacinema.com/vods'
+	html_content = HTML.ElementFromURL(html_url)
+
+	object_container = ObjectContainer(title2=title)
+	for html_item in html_content.xpath('//*[@class="filter_box tourbox"]'):
+		tournament_name = html_item.get('data-description').split(';')[0]
+		tournament_id   = html_item.get('id')
+		object_container.add(DirectoryObject(key=Callback(vods_search, title=tournament_name, tournament_id=tournament_id), title=tournament_name))
+
+	return object_container
+
+################################################################################
+@route(PREFIX + '/vods_search')
+def vods_search(title, tournament_id):
+	html_url     = 'http://www.dotacinema.com/vods?tournaments={0}'.format(tournament_id)
+	html_content = HTML.ElementFromURL(html_url)
+
+	object_container = ObjectContainer(title2=title)
+	for html_item in html_content.xpath('//*[@class="vod_container"]/a'):
+		team1_name = html_item.xpath('./div/div[@class="team1"]/span[@class="team_icon"]/@title')[0]
+		team2_name = html_item.xpath('./div/div[@class="team2"]/span[@class="team_icon"]/@title')[0]
+		match_type = html_item.xpath('./div/div[@class="matchtype"]/text()')[0]
+		vod_name = '{0} - {1} ({2})'.format(team1_name, team2_name, match_type)
+		vod_url  = 'http://www.dotacinema.com' + html_item.get('href')
+		object_container.add(DirectoryObject(key=Callback(vod, title=vod_name, vod_url=vod_url), title=vod_name))
+
+	return object_container
+
+################################################################################
+@route(PREFIX + '/vod')
+def vod(title, vod_url):
+	html_url     = vod_url
+	html_content = HTML.ElementFromURL(html_url)
+
+	object_container = ObjectContainer(title2=title)
+	for html_item in html_content.xpath('//a[@class="gamelink"]'):
+		game_name = html_item.xpath('./div/text()')[0]
+		game_url  = 'http://www.youtube.com/watch?v={0}'.format(html_item.xpath('./div/@data-youtube')[0])
+		object_container.add(VideoClipObject(title=game_name, url=game_url))
+
 	return object_container
