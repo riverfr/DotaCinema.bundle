@@ -8,12 +8,12 @@ ICON   = 'icon-default.png'
 ################################################################################
 def Start():
 	ObjectContainer.art    = R(ART)
+	ObjectContainer.thumb  = R(ICON)
 	ObjectContainer.title1 = TITLE
-	VideoClipObject.art    = R(ART)
 	VideoClipObject.thumb  = R(ICON)
 
 ################################################################################
-@handler(PREFIX, TITLE)
+@handler(PREFIX, TITLE, thumb=ICON, art=ART)
 def Main():
 	object_container = ObjectContainer(title2=TITLE)
 	object_container.add(DirectoryObject(key=Callback(recent, title='Recent Uploads'), title='Recent Uploads', thumb=R(ICON)))
