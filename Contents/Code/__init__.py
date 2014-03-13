@@ -74,6 +74,7 @@ def show(title, playlist_url):
 @route(PREFIX + '/vods')
 def vods(title):
 	object_container = ObjectContainer(title2=title)
+	object_container.add(DirectoryObject(key=Callback(vods_search, title='Recent Matches', tournament_id='__EMPTY__'), title='Recent Matches'))
 	object_container.add(DirectoryObject(key=Callback(vods_tournaments, title='Tournaments'), title='Tournaments'))
 	return object_container
 
@@ -94,30 +95,51 @@ def vods_tournaments(title):
 ################################################################################
 @route(PREFIX + '/vods_search')
 def vods_search(title, tournament_id):
+	tournament_id = '' if tournament_id == '__EMPTY__' else tournament_id
+
 	html_url     = 'http://www.dotacinema.com/vods?tournaments={0}'.format(tournament_id)
 	html_content = HTML.ElementFromURL(html_url)
 
 	object_container = ObjectContainer(title2=title)
 	for html_item in html_content.xpath('//*[@class="vod_container"]/a'):
-		team1_name = html_item.xpath('./div/div[@class="team1"]/span[@class="team_icon"]/@title')[0]
-		team2_name = html_item.xpath('./div/div[@class="team2"]/span[@class="team_icon"]/@title')[0]
-		match_type = html_item.xpath('./div/div[@class="matchtype"]/text()')[0]
-		vod_name = '{0} - {1} ({2})'.format(team1_name, team2_name, match_type)
+		tournament_name = html_item.xpath('./div/div[@class="tournament"]/@title')[0]
+		team1_name      = html_item.xpath('./div/div[@class="team1"]/span[2]/@title')[0]
+		team2_name      = html_item.xpath('./div/div[@class="team2"]/span[2]/@title')[0]
+		match_type      = html_item.xpath('./div/div[@class="matchtype"]/text()')[0]
+		caster_names    = vod_get_casters(html_item)
+
+		vod_name    = '{0} - {1} ({2})'.format(team1_name, team2_name, match_type)
+		vod_tagline = title
+		vod_summary = '{0}\n\nCasted by {1}'.format(tournament_name, caster_names)
 		vod_url  = 'http://www.dotacinema.com' + html_item.get('href')
-		object_container.add(DirectoryObject(key=Callback(vod, title=vod_name, vod_url=vod_url), title=vod_name))
+		object_container.add(DirectoryObject(key=Callback(vod, title=vod_name, vod_summary=vod_summary, vod_url=vod_url), title=vod_name, tagline=vod_tagline, summary=vod_summary))
 
 	return object_container
 
 ################################################################################
 @route(PREFIX + '/vod')
-def vod(title, vod_url):
+def vod(title, vod_summary, vod_url):
 	html_url     = vod_url
 	html_content = HTML.ElementFromURL(html_url)
 
 	object_container = ObjectContainer(title2=title)
 	for html_item in html_content.xpath('//a[@class="gamelink"]'):
-		game_name = html_item.xpath('./div/text()')[0]
-		game_url  = 'http://www.youtube.com/watch?v={0}'.format(html_item.xpath('./div/@data-youtube')[0])
-		object_container.add(VideoClipObject(title=game_name, url=game_url))
+		game_name    = html_item.xpath('./div/text()')[0]
+		game_summary = vod_summary
+		game_url     = 'http://www.youtube.com/watch?v={0}'.format(html_item.xpath('./div/@data-youtube')[0])
+		object_container.add(VideoClipObject(title=game_name, summary=game_summary, url=game_url))
 
 	return object_container
+
+################################################################################
+def vod_get_casters(html_item):
+	casters = []
+	for caster_name in html_item.xpath('./div/div[@class="caster "]/span[@class="caster_icon"]/@title'):
+		casters.append(caster_name)
+	for caster_name in html_item.xpath('./div/div[@class="caster full-width"]/span[@class="caster_icon"]/@title'):
+		casters.append(caster_name)
+	for caster_name in html_item.xpath('./div/div[@class="caster caster_text"]/text()'):
+		casters.append(caster_name)
+	for caster_name in html_item.xpath('./div/div[@class="caster full-width caster_text"]/text()'):
+		casters.append(caster_name)
+	return ', '.join(casters)
