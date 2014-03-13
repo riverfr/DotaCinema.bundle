@@ -8,7 +8,7 @@ ICON   = 'icon-default.png'
 ################################################################################
 def Start():
 	ObjectContainer.art    = R(ART)
-	ObjectContainer.thumb  = R(ICON)
+	DirectoryObject.thumb  = R(ICON)
 	ObjectContainer.title1 = TITLE
 	VideoClipObject.thumb  = R(ICON)
 
