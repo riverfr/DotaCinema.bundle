@@ -109,10 +109,9 @@ def vods_search(title, tournament_id):
 		caster_names    = vod_get_casters(html_item)
 
 		vod_name    = '{0} - {1} ({2})'.format(team1_name, team2_name, match_type)
-		vod_tagline = title
 		vod_summary = '{0}\n\nCasted by {1}'.format(tournament_name, caster_names)
 		vod_url  = 'http://www.dotacinema.com' + html_item.get('href')
-		object_container.add(DirectoryObject(key=Callback(vod, title=vod_name, vod_summary=vod_summary, vod_url=vod_url), title=vod_name, tagline=vod_tagline, summary=vod_summary))
+		object_container.add(DirectoryObject(key=Callback(vod, title=vod_name, vod_summary=vod_summary, vod_url=vod_url), title=vod_name, summary=vod_summary))
 
 	return object_container
 
