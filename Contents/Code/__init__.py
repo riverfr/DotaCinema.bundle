@@ -75,8 +75,24 @@ def show(title, playlist_url):
 def vods(title):
 	object_container = ObjectContainer(title2=title)
 	object_container.add(DirectoryObject(key=Callback(vods_search, title='Recent Matches', tournament_id='__EMPTY__'), title='Recent Matches'))
+	object_container.add(DirectoryObject(key=Callback(vods_teams, title='Teams'), title='Teams'))
 	object_container.add(DirectoryObject(key=Callback(vods_tournaments, title='Tournaments'), title='Tournaments'))
 	return object_container
+
+################################################################################
+@route(PREFIX + '/vods/teams')
+def vods_teams(title):
+	html_url     = 'http://www.dotacinema.com/vods'
+	html_content = HTML.ElementFromURL(html_url)
+
+	object_container = ObjectContainer(title2=title)
+	for html_item in html_content.xpath('//*[@class="filter_box teambox"]'):
+		team_name = html_item.get('data-description').split(';')[0]
+		team_id   = html_item.get('id')
+		object_container.add(DirectoryObject(key=Callback(vods_search, title=team_name, tournament_id='__EMPTY__', team_id=team_id), title=team_name))
+
+	return object_container
+
 
 ################################################################################
 @route(PREFIX + '/vods/tournaments')
@@ -88,16 +104,17 @@ def vods_tournaments(title):
 	for html_item in html_content.xpath('//*[@class="filter_box tourbox"]'):
 		tournament_name = html_item.get('data-description').split(';')[0]
 		tournament_id   = html_item.get('id')
-		object_container.add(DirectoryObject(key=Callback(vods_search, title=tournament_name, tournament_id=tournament_id), title=tournament_name))
+		object_container.add(DirectoryObject(key=Callback(vods_search, title=tournament_name, tournament_id=tournament_id, team_id='__EMPTY__'), title=tournament_name))
 
 	return object_container
 
 ################################################################################
 @route(PREFIX + '/vods_search')
-def vods_search(title, tournament_id):
+def vods_search(title, tournament_id, team_id):
 	tournament_id = '' if tournament_id == '__EMPTY__' else tournament_id
+	team_id       = '' if team_id == '__EMPTY__' else team_id
 
-	html_url     = 'http://www.dotacinema.com/vods?tournaments={0}'.format(tournament_id)
+	html_url     = 'http://www.dotacinema.com/vods?tournaments={0}&teams={1}'.format(tournament_id, team_id)
 	html_content = HTML.ElementFromURL(html_url)
 
 	object_container = ObjectContainer(title2=title)
