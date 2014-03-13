@@ -32,7 +32,7 @@ def recent(title):
 		Log.Info('FOUND 1 ITEM')
 		videoclip_name  = html_item.xpath('./div/div[2]/h3/a/text()')[0].strip()
 		videoclip_url   = 'http://www.youtube.com' + html_item.xpath('./div/div[2]/h3/a/@href')[0].strip()
-		videoclip_thumb = Resource.ContentsOfURLWithFallback('http:' + html_item.xpath('./div/div[1]/a/span[1]/span/span/img/@src')[0])
+		videoclip_thumb = Resource.ContentsOfURLWithFallback(url='http:' + html_item.xpath('./div/div[1]/a/span[1]/span/span/img/@src')[0].replace('/default.jpg', '/hqdefault.jpg'), fallback=ICON)
 		object_container.add(VideoClipObject(title=videoclip_name, url=videoclip_url, thumb=videoclip_thumb))
 
 	return object_container
@@ -46,7 +46,7 @@ def shows(title):
 	object_container = ObjectContainer(title2=title)
 	for html_item in html_content.xpath('//*[@class="show"]'):
 		show_name         = html_item.xpath('./h1/text()')[0]
-		show_thumb        = Resource.ContentsOfURLWithFallback('http://www.dotacinema.com' + html_item.xpath('./img/@src')[0])
+		show_thumb        = Resource.ContentsOfURLWithFallback(url='http://www.dotacinema.com' + html_item.xpath('./img/@src')[0], fallback=ICON)
 		show_summary      = html_item.xpath('./p/text()')[0] if html_item.xpath('./p/text()') else ''
 		show_playlist_url = html_item.xpath('./a/@href')[-1]
 
@@ -64,7 +64,7 @@ def show(title, playlist_url):
 	for html_item in html_content.xpath('//div[@class="pl-video-content"]'):
 		videoclip_name  = html_item.xpath('./div/h3/a/text()')[0].strip()
 		videoclip_url   = 'http://www.youtube.com' + html_item.xpath('./a/@href')[0].strip()
-		videoclip_thumb = Resource.ContentsOfURLWithFallback('http:' + html_item.xpath('./a/span/span/span/img/@src')[0])
+		videoclip_thumb = Resource.ContentsOfURLWithFallback(url='http:' + html_item.xpath('./a/span/span/span/img/@src')[0].replace('/default.jpg', '/hqdefault.jpg'), fallback=ICON)
 		object_container.add(VideoClipObject(title=videoclip_name, url=videoclip_url, thumb=videoclip_thumb))
 
 	object_container.objects.reverse()
